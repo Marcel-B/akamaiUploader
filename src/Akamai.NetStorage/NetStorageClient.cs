@@ -54,7 +54,7 @@ public sealed class NetStorageClient : INetStorageClient
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(localFilePath);
         await using var stream = File.OpenRead(localFilePath);
-        await UploadAsync(stream, remoteFileName, GuessContentType(localFilePath), cancellationToken)
+        await UploadAsync(stream, remoteFileName, ContentType.Guess(localFilePath), cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -293,21 +293,6 @@ public sealed class NetStorageClient : INetStorageClient
             await temp.DisposeAsync().ConfigureAwait(false);
             throw;
         }
-    }
-
-    private static string GuessContentType(string path)
-    {
-        return Path.GetExtension(path).ToLowerInvariant() switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            ".svg" => "image/svg+xml",
-            ".bmp" => "image/bmp",
-            ".avif" => "image/avif",
-            _ => "application/octet-stream"
-        };
     }
 
     private sealed class PreparedUpload : IAsyncDisposable

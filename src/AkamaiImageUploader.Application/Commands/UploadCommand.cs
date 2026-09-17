@@ -49,7 +49,7 @@ public sealed class UploadCommand
         string remoteFileName;
         try
         {
-            remoteFileName = ResolveRemoteFileName(designation, imagePath);
+            remoteFileName = AppendTimestamp(ResolveRemoteFileName(designation, imagePath));
         }
         catch (ArgumentException ex)
         {
@@ -97,6 +97,16 @@ public sealed class UploadCommand
         return name;
     }
 
+    internal static string AppendTimestamp(string fileName, DateTimeOffset? timestamp = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+
+        var stamp = (timestamp ?? DateTimeOffset.UtcNow).ToString("yyyyMMddHHmmss");
+        var extension = Path.GetExtension(fileName);
+        var baseName = Path.GetFileNameWithoutExtension(fileName);
+        return $"{baseName}_{stamp}{extension}";
+    }
+
     private static bool IsHelp(string value)
     {
         return value is "-h" or "--help" or "-?" or "/?";
@@ -112,7 +122,8 @@ public sealed class UploadCommand
               AkamaiImageUploader <bildpfad> <bezeichnung>
               AkamaiImageUploader upload <bildpfad> <bezeichnung>
 
-            Hinweis: Der CDN-Cache wird nicht automatisch invalidiert.
+            Hinweis: Dem Dateinamen wird automatisch ein Zeitstempel angehängt.
+            Der CDN-Cache wird nicht automatisch invalidiert.
             Dafür separat 'AkamaiImageUploader purge <dateiname-oder-url>' ausführen.
             """);
     }

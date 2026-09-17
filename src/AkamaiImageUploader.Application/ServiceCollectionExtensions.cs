@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(60);
         });
         services.AddTransient<UploadCommand>();
+        services.AddTransient<UpdateCommand>();
         services.AddTransient<ListCommand>();
         services.AddTransient<DeleteCommand>();
         services.AddTransient<DownloadCommand>();
