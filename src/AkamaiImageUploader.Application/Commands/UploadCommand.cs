@@ -76,6 +76,51 @@ public sealed class UploadCommand
         return 0;
     }
 
+    /// <summary>
+    /// Programmatischer Zugang für Aufrufer, die das Bild bereits als Byte-Array vorliegen haben
+    /// (z. B. eine Webanwendung, die eine hochgeladene Bilddatei direkt weiterreicht) statt es
+    /// von der Festplatte zu lesen.
+    /// </summary>
+    /// <param name="imageContent">Der Bildinhalt.</param>
+    /// <param name="fileNameHint">Ursprünglicher Dateiname (für die Dateiendung, z. B. aus einem Upload-Formular).</param>
+    /// <param name="designation">Freier Name in NetStorage. Fehlt die Dateiendung, wird die von <paramref name="fileNameHint"/> übernommen.</param>
+    /// <returns>Der Name, unter dem das Bild in NetStorage abgelegt wurde.</returns>
+    public async Task<string> ExecuteAsync(
+        byte[] imageContent,
+        string fileNameHint,
+        string designation,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(imageContent);
+        if (imageContent.Length == 0)
+        {
+            throw new ArgumentException("Der Bildinhalt darf nicht leer sein.", nameof(imageContent));
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileNameHint);
+        ArgumentException.ThrowIfNullOrWhiteSpace(designation);
+
+        var remoteFileName = AppendTimestamp(ResolveRemoteFileName(designation, fileNameHint));
+        var contentType = ContentType.Guess(fileNameHint);
+
+        _netStorage.ValidateConfiguration();
+
+        Console.WriteLine("Stelle Verbindung zu Akamai NetStorage her ...");
+        await _netStorage.ValidateConnectionAsync(cancellationToken).ConfigureAwait(false);
+        Console.WriteLine("Login erfolgreich.");
+
+        Console.WriteLine($"Lade Bild hoch als '{remoteFileName}' ...");
+        using (var stream = new MemoryStream(imageContent, writable: false))
+        {
+            await _netStorage.UploadAsync(stream, remoteFileName, contentType, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        Console.WriteLine("Upload erfolgreich.");
+        Console.WriteLine("Fertig.");
+        return remoteFileName;
+    }
+
     internal static string ResolveRemoteFileName(string designation, string sourcePath)
     {
         var name = Path.GetFileName(designation.Replace('\\', '/').Trim());
