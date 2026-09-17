@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/AkamaiImageUploader.Tests/AkamaiImageUploader.Tests.csproj" />
+  </Folder>
+  <Project Path="AkamaiImageUploader.csproj" />
+</Solution>
