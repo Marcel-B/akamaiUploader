@@ -1,6 +1,6 @@
-using AkamaiImageUploader.NetStorage;
+using Akamai.NetStorage;
 
-namespace AkamaiImageUploader.Tests;
+namespace Akamai.NetStorage.Tests;
 
 public class NetStorageSignerTests
 {

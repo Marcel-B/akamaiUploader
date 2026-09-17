@@ -1,3 +1,5 @@
+using Akamai.NetStorage;
+
 namespace AkamaiImageUploader.Configuration;
 
 public sealed class AkamaiOptions
@@ -7,41 +9,6 @@ public sealed class AkamaiOptions
     public NetStorageOptions NetStorage { get; set; } = new();
 
     public CachePurgeOptions CachePurge { get; set; } = new();
-}
-
-public sealed class NetStorageOptions
-{
-    /// <summary>
-    /// Hostname der Usage API, z. B. example-nsu.akamaihd.net
-    /// oder nur der Domain-Prefix (dann wird -nsu.akamaihd.net ergänzt).
-    /// </summary>
-    public string Host { get; set; } = "";
-
-    public string CpCode { get; set; } = "";
-
-    public string UploadAccountId { get; set; } = "";
-
-    public string Key { get; set; } = "";
-
-    /// <summary>
-    /// Unterordner innerhalb des CP-Code-Roots, z. B. images.
-    /// </summary>
-    public string RemotePath { get; set; } = "images";
-
-    public string ResolvedHost()
-    {
-        var host = Host.Trim();
-        host = host.Replace("https://", "", StringComparison.OrdinalIgnoreCase)
-            .Replace("http://", "", StringComparison.OrdinalIgnoreCase)
-            .TrimEnd('/');
-
-        if (string.IsNullOrWhiteSpace(host))
-        {
-            return host;
-        }
-
-        return host.Contains('.', StringComparison.Ordinal) ? host : $"{host}-nsu.akamaihd.net";
-    }
 }
 
 public sealed class CachePurgeOptions

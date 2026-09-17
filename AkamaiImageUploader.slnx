@@ -1,6 +1,10 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Akamai.NetStorage/Akamai.NetStorage.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AkamaiImageUploader.Tests/AkamaiImageUploader.Tests.csproj" />
+    <Project Path="tests/Akamai.NetStorage.Tests/Akamai.NetStorage.Tests.csproj" />
   </Folder>
   <Project Path="AkamaiImageUploader.csproj" />
 </Solution>

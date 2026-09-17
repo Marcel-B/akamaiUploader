@@ -1,4 +1,4 @@
-using AkamaiImageUploader.NetStorage;
+using Akamai.NetStorage;
 using AkamaiImageUploader.Purge;
 
 namespace AkamaiImageUploader;
@@ -10,10 +10,10 @@ public sealed class UploadCommand
         ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".avif"
     ];
 
-    private readonly NetStorageClient _netStorage;
+    private readonly INetStorageClient _netStorage;
     private readonly CachePurgeClient _cachePurge;
 
-    public UploadCommand(NetStorageClient netStorage, CachePurgeClient cachePurge)
+    public UploadCommand(INetStorageClient netStorage, CachePurgeClient cachePurge)
     {
         _netStorage = netStorage;
         _cachePurge = cachePurge;
@@ -66,27 +66,19 @@ public sealed class UploadCommand
             Console.WriteLine($"Hinweis: '{extension}' ist keine typische Bildendung. Der Upload wird trotzdem versucht.");
         }
 
-        try
-        {
-            _netStorage.ValidateConfiguration();
+        _netStorage.ValidateConfiguration();
 
-            Console.WriteLine("Stelle Verbindung zu Akamai NetStorage her ...");
-            await _netStorage.LoginAsync(cancellationToken).ConfigureAwait(false);
-            Console.WriteLine("Login erfolgreich.");
+        Console.WriteLine("Stelle Verbindung zu Akamai NetStorage her ...");
+        await _netStorage.ValidateConnectionAsync(cancellationToken).ConfigureAwait(false);
+        Console.WriteLine("Login erfolgreich.");
 
-            Console.WriteLine($"Lade Bild hoch als '{remoteFileName}' ...");
-            await _netStorage.UploadAsync(imagePath, remoteFileName, cancellationToken).ConfigureAwait(false);
-            Console.WriteLine("Upload erfolgreich.");
+        Console.WriteLine($"Lade Bild hoch als '{remoteFileName}' ...");
+        await _netStorage.UploadAsync(imagePath, remoteFileName, cancellationToken).ConfigureAwait(false);
+        Console.WriteLine("Upload erfolgreich.");
 
-            await InvalidateCacheAsync(remoteFileName, cancellationToken).ConfigureAwait(false);
-            Console.WriteLine("Fertig.");
-            return 0;
-        }
-        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or TaskCanceledException)
-        {
-            Console.Error.WriteLine($"Fehler: {ex.Message}");
-            return 1;
-        }
+        await InvalidateCacheAsync(remoteFileName, cancellationToken).ConfigureAwait(false);
+        Console.WriteLine("Fertig.");
+        return 0;
     }
 
     private async Task InvalidateCacheAsync(string remoteFileName, CancellationToken cancellationToken)
@@ -147,19 +139,11 @@ public sealed class UploadCommand
     {
         Console.WriteLine(
             """
-            Akamai Image Uploader
+            Akamai Image Uploader — Upload
 
             Aufruf:
               AkamaiImageUploader <bildpfad> <bezeichnung>
-
-            Argumente:
-              bildpfad      Pfad zur lokalen Bilddatei
-              bezeichnung   Freier Name in NetStorage. Fehlt die Dateiendung,
-                            wird die Endung der Quelldatei übernommen.
-
-            Zugangsdaten stehen in appsettings.json (Abschnitt Akamai).
-            Nach dem Upload wird der CDN-Cache für die öffentliche URL invalidiert,
-            damit ein erneuter Upload unter gleichem Namen nicht das alte Bild ausliefert.
+              AkamaiImageUploader upload <bildpfad> <bezeichnung>
             """);
     }
 }

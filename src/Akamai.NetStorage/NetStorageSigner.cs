@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AkamaiImageUploader.NetStorage;
+namespace Akamai.NetStorage;
 
 /// <summary>
 /// HMAC-SHA256-Signatur für die NetStorage Usage API (Version 5).
