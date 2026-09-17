@@ -1,5 +1,4 @@
 using Akamai.NetStorage;
-using AkamaiImageUploader.Purge;
 
 namespace AkamaiImageUploader;
 
@@ -11,12 +10,10 @@ public sealed class UploadCommand
     ];
 
     private readonly INetStorageClient _netStorage;
-    private readonly CachePurgeClient _cachePurge;
 
-    public UploadCommand(INetStorageClient netStorage, CachePurgeClient cachePurge)
+    public UploadCommand(INetStorageClient netStorage)
     {
         _netStorage = netStorage;
-        _cachePurge = cachePurge;
     }
 
     public async Task<int> ExecuteAsync(string[] args, CancellationToken cancellationToken)
@@ -75,27 +72,8 @@ public sealed class UploadCommand
         Console.WriteLine($"Lade Bild hoch als '{remoteFileName}' ...");
         await _netStorage.UploadAsync(imagePath, remoteFileName, cancellationToken).ConfigureAwait(false);
         Console.WriteLine("Upload erfolgreich.");
-
-        await InvalidateCacheAsync(remoteFileName, cancellationToken).ConfigureAwait(false);
         Console.WriteLine("Fertig.");
         return 0;
-    }
-
-    private async Task InvalidateCacheAsync(string remoteFileName, CancellationToken cancellationToken)
-    {
-        if (!_cachePurge.IsConfigured)
-        {
-            Console.WriteLine(
-                "Cache-Invalidierung übersprungen: EdgeGrid-Zugangsdaten fehlen oder CachePurge ist deaktiviert.");
-            Console.WriteLine(
-                "Ohne Fast Purge kann der CDN-Cache bei gleichem Namen noch das alte Bild ausliefern.");
-            return;
-        }
-
-        var publicUrl = _cachePurge.BuildPublicUrl(remoteFileName);
-        Console.WriteLine($"Invalidiere CDN-Cache für {publicUrl} ...");
-        var result = await _cachePurge.InvalidateUrlAsync(publicUrl, cancellationToken).ConfigureAwait(false);
-        Console.WriteLine($"Cache-Invalidierung ausgelöst{PurgeCommand.Format(result)}.");
     }
 
     internal static string ResolveRemoteFileName(string designation, string sourcePath)
@@ -133,6 +111,9 @@ public sealed class UploadCommand
             Aufruf:
               AkamaiImageUploader <bildpfad> <bezeichnung>
               AkamaiImageUploader upload <bildpfad> <bezeichnung>
+
+            Hinweis: Der CDN-Cache wird nicht automatisch invalidiert.
+            Dafür separat 'AkamaiImageUploader purge <dateiname-oder-url>' ausführen.
             """);
     }
 }

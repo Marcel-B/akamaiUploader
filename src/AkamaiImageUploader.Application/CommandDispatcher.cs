@@ -69,9 +69,9 @@ public static class CommandDispatcher
               dateiname     Name der Datei relativ zu Akamai:NetStorage:RemotePath.
 
             Zugangsdaten stehen in appsettings.json (Abschnitt Akamai).
-            Nach dem Upload wird der CDN-Cache für die öffentliche URL invalidiert,
-            damit ein erneuter Upload unter gleichem Namen nicht das alte Bild ausliefert.
-            Mit 'purge' kann die Invalidierung unabhängig vom Upload ausgelöst werden.
+            Der CDN-Cache wird nicht automatisch invalidiert. Damit ein erneuter
+            Upload unter gleichem Namen nicht das alte Bild ausliefert, muss die
+            Invalidierung separat über 'purge <dateiname-oder-url>' ausgelöst werden.
             """);
     }
 }
