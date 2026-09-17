@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AkamaiImageUploader.csproj" />
+    <ProjectReference Include="..\..\src\AkamaiImageUploader.Application\AkamaiImageUploader.Application.csproj" />
   </ItemGroup>
 
 </Project>

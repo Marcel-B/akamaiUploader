@@ -11,17 +11,43 @@ public sealed class CachePurgeClient
     private readonly HttpClient _httpClient;
     private readonly CachePurgeOptions _options;
 
-    public CachePurgeClient(IHttpClientFactory httpClientFactory, IOptions<AkamaiOptions> options)
+    public CachePurgeClient(HttpClient httpClient, IOptions<AkamaiOptions> options)
     {
-        _httpClient = httpClientFactory.CreateClient("EdgeGrid");
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _options = options.Value.CachePurge;
     }
 
     public bool IsConfigured => _options.Enabled && _options.HasCredentials();
 
+    public void EnsureConfigured()
+    {
+        if (!IsConfigured)
+        {
+            throw new InvalidOperationException(
+                "Cache-Purge ist nicht konfiguriert: EdgeGrid-Zugangsdaten fehlen oder CachePurge ist deaktiviert.");
+        }
+    }
+
     public string BuildPublicUrl(string fileName)
     {
-        return $"{_options.PublicBaseUrl.TrimEnd('/')}/{fileName}";
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        if (IsAbsoluteUrl(fileName))
+        {
+            return fileName.Trim();
+        }
+
+        return $"{_options.PublicBaseUrl.TrimEnd('/')}/{fileName.Trim().TrimStart('/')}";
+    }
+
+    public static bool IsAbsoluteUrl(string value)
+    {
+        return value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public Task<PurgeResult> InvalidateFileAsync(string fileName, CancellationToken cancellationToken)
+    {
+        return InvalidateUrlAsync(BuildPublicUrl(fileName), cancellationToken);
     }
 
     public async Task<PurgeResult> InvalidateUrlAsync(string publicUrl, CancellationToken cancellationToken)

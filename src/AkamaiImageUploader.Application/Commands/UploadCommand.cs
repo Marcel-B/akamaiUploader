@@ -95,18 +95,7 @@ public sealed class UploadCommand
         var publicUrl = _cachePurge.BuildPublicUrl(remoteFileName);
         Console.WriteLine($"Invalidiere CDN-Cache für {publicUrl} ...");
         var result = await _cachePurge.InvalidateUrlAsync(publicUrl, cancellationToken).ConfigureAwait(false);
-
-        var details = result.PurgeId is null ? "" : $" (purgeId: {result.PurgeId}";
-        if (result.EstimatedSeconds is int seconds)
-        {
-            details += details.Length == 0 ? $" (ca. {seconds}s)" : $", ca. {seconds}s)";
-        }
-        else if (details.Length > 0)
-        {
-            details += ")";
-        }
-
-        Console.WriteLine($"Cache-Invalidierung ausgelöst{details}.");
+        Console.WriteLine($"Cache-Invalidierung ausgelöst{PurgeCommand.Format(result)}.");
     }
 
     internal static string ResolveRemoteFileName(string designation, string sourcePath)
